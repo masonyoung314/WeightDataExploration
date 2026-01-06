@@ -25,6 +25,10 @@ ui <- fluidPage(
             value = 0,
             step = 1
           ),
+          checkboxInput(
+            inputId = "smooth",
+            label = "Line of best fit"
+          ),
           htmlOutput("percent")
         ),
         mainPanel(
@@ -90,16 +94,20 @@ server <- function(input, output) {
   
   
   output$weightsGraph <- renderPlot({
-    ggplot() + geom_point(data = mason_daily(), aes(x = Date, y = Mason.s.Weight..lbs., color = "Mason")) +
+    p <- ggplot() + geom_point(data = mason_daily(), aes(x = Date, y = Mason.s.Weight..lbs., color = "Mason")) +
       geom_point(data = sofi_daily(), aes(x = Date, y = Sofi.s.Weight..lbs., color = "Sofi")) +
       labs(
         y = "Weights (lbs)",
         title = "Mason and Sofi's Weigths Over Time (lbs)",
         color = "Person"
       ) +
-      geom_smooth(data = sofi_daily(), method = "lm", aes(x = Date, y = Sofi.s.Weight..lbs.)) +
-      geom_smooth(data = mason_daily(), method = "lm", aes(x = Date, y = Mason.s.Weight..lbs.)) +
       theme_bw()
+    
+    if (input$smooth == TRUE) {
+      p <- p + geom_smooth(data = sofi_daily(), method = "lm", aes(x = Date, y = Sofi.s.Weight..lbs.)) +
+        geom_smooth(data = mason_daily(), method = "lm", aes(x = Date, y = Mason.s.Weight..lbs.))
+    }
+    p
   })
   
   output$percent <- renderUI({
