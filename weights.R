@@ -24,14 +24,34 @@ ui <- fluidPage(
             max = 101,
             value = 0,
             step = 1
-          )
+          ),
+          htmlOutput("percent")
         ),
         mainPanel(
           plotOutput("weightsGraph"),
           htmlOutput("defecit")
         )
       )
-    )
+    ),
+    tabPanel("Sleep",
+             sidebarLayout(
+               sidebarPanel(
+                 sliderInput(
+                   inputId = "hours",
+                   label = "Hours slept: ",
+                   min = 0,
+                   max = 12,
+                   value = 0,
+                   step = 1
+                 )
+               ),
+               mainPanel(
+                 htmlOutput("note"),
+                 htmlOutput("sleep_mdl_out"),
+                 htmlOutput("sleep_pred")
+               )
+             )
+            )
   )
 )
 
@@ -47,27 +67,6 @@ server <- function(input, output) {
                                     !(is.na(Sofi.s.Weight..kg.)), !(is.na(Sofi.s.Weight..lbs.)),
                                     Mason.s.Weight..lbs. > 0, Mason.s.Weight.kg. > 0,
                                     Sofi.s.Weight..kg. > 0, Sofi.s.Weight..lbs. > 0)
-
-  mason_min <- min(weights$Mason.s.Weight..lbs.)
-  sofi_min <- min(weights$Sofi.s.Weight..lbs.)
-  mason_min_kg <- min(weights$Mason.s.Weight.kg.)
-  sofi_min_kg <- min(weights$Sofi.s.Weight..kg.)
-  
-  mason_max <- max(weights$Mason.s.Weight..lbs.)
-  sofi_max <- max(weights$Sofi.s.Weight..lbs.)
-  sofi_max_kg <- max(weights$Sofi.s.Weight..kg.)
-  
-  diff_mason <- mason_max - mason_min
-  diff_mason
-  
-  diff_sofi <- sofi_max - sofi_min
-  diff_sofi
-  
-  percent_diff_mason <- (diff_mason / mason_max) * 100
-  percent_diff_sofi <- (diff_sofi / sofi_max) * 100
-  
-  round(percent_diff_mason, 2)
-  round(percent_diff_sofi, 2)
   
   daily_start <- as.numeric(1)
   
@@ -82,6 +81,14 @@ server <- function(input, output) {
     sofi_weights |> filter(as.numeric(Day) <= input$days)
   })
   
+  sleep_data <- weights |> filter((!is.na(Sleep.Score)), !(is.na(Hours.Slept)))
+  
+  sleep_mdl <- lm(Hours.Slept ~ Sleep.Score, data = sleep_data)
+  sleep_int <- summary(sleep_mdl)$coefficients["(Intercept)", "Estimate"]
+  sleep_coef <- summary(sleep_mdl)$coefficients["Sleep.Score", "Estimate"]
+  sleep_p <- summary(sleep_mdl)$coefficients["Sleep.Score", "Pr(>|t|)"]
+  
+  
   output$weightsGraph <- renderPlot({
     ggplot() + geom_point(data = mason_daily(), aes(x = Date, y = Mason.s.Weight..lbs., color = "Mason")) +
       geom_point(data = sofi_daily(), aes(x = Date, y = Sofi.s.Weight..lbs., color = "Sofi")) +
@@ -95,11 +102,29 @@ server <- function(input, output) {
       theme_bw()
   })
   
+  output$percent <- renderUI({
+    mason <- mason_daily()
+    sofi <- sofi_daily()
+    
+    mason_min <- min(mason$Mason.s.Weight..lbs.)
+    mason_max <- max(mason$Mason.s.Weight..lbs.)
+    
+    sofi_min <- min(sofi$Sofi.s.Weight..lbs.)
+    sofi_max <- max(sofi$Sofi.s.Weight..lbs.)
+    
+    mason_percent_diff <- ((mason_max - mason_min) / mason_min) * 100
+    sofi_percent_diff <- ((sofi_max - sofi_min) / sofi_min) * 100
+    
+    HTML(paste0("Mason percent change: <b>-", round(mason_percent_diff, 2), "%</b><br><br>
+                Sofi percent change: <b>-", round(sofi_percent_diff, 2), "%</b>" ))
+    
+  })
+  
   output$defecit <- renderUI({
     # evaluate the p_value
     p_eval <- function(p_value) {
       if (p_value < 0.05) {
-        return("definitely")
+        return("most likely")
       }
       else {
         return("maybe")
@@ -138,6 +163,22 @@ server <- function(input, output) {
                 is<b> ", p_eval(s_p), "</b> ", c_eval(s_c["Date"]), " losing
                   an average of <b> ", round(s_c["Date"], 2), "</b>lbs per day
                   (p-value: ", round(s_p, 3), ")"))
+  })
+  
+  output$note <- renderUI({
+    HTML(paste0("<b>Note: Not enough data yet for accurate predictions</b><br><br>"))
+  })
+  
+  output$sleep_mdl_out <- renderUI({
+    
+    HTML(paste0("On average, with each additional hour of sleep, sleep score increases by <b>",
+                round(sleep_coef, 2), "</b> points (p-value: ", round(sleep_p, 3), ")"))
+  })
+  
+  output$sleep_pred <- renderUI({
+    estimate <- (sleep_coef * input$hours) + sleep_int
+    HTML(paste0("<br>Based on the hours you inputted, I estimate that I slept <b>", 
+                round(estimate, 2), "</b> hours."))
   })
 }
 
