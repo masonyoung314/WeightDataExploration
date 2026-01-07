@@ -2,6 +2,7 @@ library(tidyverse)
 library(ggplot2)
 library(lubridate)
 library(shiny)
+library(bslib)
 setwd("/Users/masonyoung/Desktop/Personal_Projects/WeightDataExploration")
 weights <- read.csv("weights.csv", header = TRUE)
 
@@ -10,20 +11,27 @@ head(weights)
 # weights <- weights |> rename(1 = "MasonLbs", 2 = "MasonKg", 3 = "SofiLbs", 4 = "SofiKg", 5 = "Creatine",
 #                              6 = "SleepScore", 7 = "HoursSlept")
 
-
 ui <- fluidPage(
+  theme = bs_theme(
+    bg = "#F5F5F5",         
+    fg = "#141414",         
+    primary = "#007BFF",    
+    base_font = font_google("Roboto") 
+  ),
   titlePanel("Sofia and Mason's Weights Over Time"),
   tabsetPanel(
     tabPanel("Weights Over Full Period",
       sidebarLayout(
         sidebarPanel(
-          sliderInput(
-            inputId = "days",
-            label = "Days since August 25th: ",
-            min = 0,
-            max = 101,
-            value = 0,
-            step = 1
+          div(class="text-danger",
+              sliderInput(
+                inputId = "days",
+                label = "Days since August 25th: ",
+                min = 0,
+                max = 101,
+                value = 0,
+                step = 1
+              )
           ),
           checkboxInput(
             inputId = "smooth",
@@ -40,13 +48,16 @@ ui <- fluidPage(
     tabPanel("Sleep",
              sidebarLayout(
                sidebarPanel(
-                 sliderInput(
-                   inputId = "hours",
-                   label = "Hours slept: ",
-                   min = 0,
-                   max = 12,
-                   value = 0,
-                   step = 1
+                 div(
+                   class="text-danger",
+                   sliderInput(
+                     inputId = "hours",
+                     label = "Hours slept: ",
+                     min = 0,
+                     max = 12,
+                     value = 0,
+                     step = 1
+                   )
                  )
                ),
                mainPanel(
