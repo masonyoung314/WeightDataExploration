@@ -3,10 +3,10 @@ library(ggplot2)
 library(lubridate)
 library(shiny)
 library(bslib)
-setwd("/Users/masonyoung/Desktop/Personal_Projects/WeightDataExploration")
-weights <- read.csv("weights.csv", header = TRUE)
 
-head(weights)
+# weights <- read.csv("weights.csv", header = TRUE)
+# 
+# head(weights)
 
 # weights <- weights |> rename(1 = "MasonLbs", 2 = "MasonKg", 3 = "SofiLbs", 4 = "SofiKg", 5 = "Creatine",
 #                              6 = "SleepScore", 7 = "HoursSlept")

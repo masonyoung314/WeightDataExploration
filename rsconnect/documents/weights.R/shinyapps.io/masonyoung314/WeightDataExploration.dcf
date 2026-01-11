@@ -1,0 +1,12 @@
+name: WeightDataExploration
+title: WeightDataExploration
+username: masonyoung314
+account: masonyoung314
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16404566
+bundleId: 11430003
+url: https://masonyoung314.shinyapps.io/WeightDataExploration/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
