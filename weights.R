@@ -62,6 +62,7 @@ ui <- fluidPage(
                ),
                mainPanel(
                  htmlOutput("note"),
+                 plotOutput("sleep_graph"),
                  htmlOutput("sleep_mdl_out"),
                  htmlOutput("sleep_pred")
                )
@@ -188,6 +189,20 @@ server <- function(input, output) {
     HTML(paste0("<b>Note: Not enough data yet for accurate predictions</b><br><br>"))
   })
   
+  output$sleep_graph <- renderPlot({
+    sleep_data <- weights |> filter(!(is.na(Sleep.Score)), !(is.na(Hours.Slept)))
+    
+    sleep_data |> ggplot() + 
+      geom_point(aes(x = Hours.Slept, y = Sleep.Score)) +
+      geom_smooth(data = sleep_data, method = "lm", aes(x = Hours.Slept, y = Sleep.Score)) +
+      labs(
+        title = "Hours Slept vs. Sleep Score",
+        x = "Hours Slept",
+        y = "Sleep Score"
+      ) + 
+      theme_minimal()
+  })
+  
   output$sleep_mdl_out <- renderUI({
     
     HTML(paste0("On average, with each additional hour of sleep, sleep score increases by <b>",
@@ -196,7 +211,7 @@ server <- function(input, output) {
   
   output$sleep_pred <- renderUI({
     estimate <- (sleep_coef * input$hours) + sleep_int
-    HTML(paste0("<br>Based on the hours you inputted, I estimate that I slept <b>", 
+    HTML(paste0("<br><br>Based on the hours you inputted, I estimate that I slept <b>", 
                 round(estimate, 2), "</b> hours."))
   })
 }
