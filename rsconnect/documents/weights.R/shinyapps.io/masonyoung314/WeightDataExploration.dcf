@@ -5,7 +5,7 @@ account: masonyoung314
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16404566
-bundleId: 11435224
+bundleId: 11435230
 url: https://masonyoung314.shinyapps.io/WeightDataExploration/
 version: 1
 asMultiple: FALSE
