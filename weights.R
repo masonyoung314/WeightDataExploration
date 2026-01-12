@@ -3,7 +3,8 @@ library(ggplot2)
 library(lubridate)
 library(shiny)
 library(bslib)
-
+# setwd("/Users/masonyoung/Desktop/Personal_Projects/WeightDataExploration")
+# 
 # weights <- read.csv("weights.csv", header = TRUE)
 # 
 # head(weights)
@@ -15,8 +16,7 @@ ui <- fluidPage(
   theme = bs_theme(
     bg = "#F5F5F5",         
     fg = "#141414",         
-    primary = "#007BFF",    
-    base_font = font_google("Roboto") 
+    primary = "#007BFF"  
   ),
   titlePanel("Sofia and Mason's Weights Over Time"),
   tabsetPanel(
@@ -99,10 +99,10 @@ server <- function(input, output) {
   
   sleep_data <- weights |> filter((!is.na(Sleep.Score)), !(is.na(Hours.Slept)))
   
-  sleep_mdl <- lm(Hours.Slept ~ Sleep.Score, data = sleep_data)
+  sleep_mdl <- lm(Sleep.Score ~ Hours.Slept, data = sleep_data)
   sleep_int <- summary(sleep_mdl)$coefficients["(Intercept)", "Estimate"]
-  sleep_coef <- summary(sleep_mdl)$coefficients["Sleep.Score", "Estimate"]
-  sleep_p <- summary(sleep_mdl)$coefficients["Sleep.Score", "Pr(>|t|)"]
+  sleep_coef <- summary(sleep_mdl)$coefficients["Hours.Slept", "Estimate"]
+  sleep_p <- summary(sleep_mdl)$coefficients["Hours.Slept", "Pr(>|t|)"]
   
   
   output$weightsGraph <- renderPlot({
@@ -211,8 +211,8 @@ server <- function(input, output) {
   
   output$sleep_pred <- renderUI({
     estimate <- (sleep_coef * input$hours) + sleep_int
-    HTML(paste0("<br><br>Based on the hours you inputted, I estimate that I slept <b>", 
-                round(estimate, 2), "</b> hours."))
+    HTML(paste0("<br><br>Based on the hours you inputted, I estimate that my sleep score was <b>", 
+                round(estimate, 2), "</b>."))
   })
 }
 
